@@ -2,18 +2,17 @@
     "compilerOptions": {
         "noEmit": true,
         "target": "ES6",
-        "module": "CommonJS",
+        "module": "ES6",
         "moduleResolution": "Node",
-        "sourceMap": true,
         "experimentalDecorators": true,
-        "jsx": "react",
+        "sourceMap": true,
 
         "baseUrl": ".",
         "paths": {
             "client/*": [ "./src/*" ],
-            "@ff/browser/*": [ "libs/ff-browser/source/*" ],
-            "@ff/core/*": [ "libs/ff-core/source/*" ],
-            "@ff/ui/*": [ "libs/ff-ui/source/*" ]
+            "@ff/browser/*": [ "node_modules/@framefactory/browser/src/*" ],
+            "@ff/core/*": [ "node_modules/@framefactory/core/src/*" ],
+            "@ff/ui/*": [ "node_modules/@framefactory/ui/src/*" ],
         }
     },
     "include": [

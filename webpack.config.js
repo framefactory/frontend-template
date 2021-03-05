@@ -14,7 +14,7 @@ const webpack = require("webpack");
 
 const TerserPlugin = require("terser-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 
 let projectVersion = "v0.0.0";
@@ -26,7 +26,7 @@ catch {}
 ////////////////////////////////////////////////////////////////////////////////
 // PROJECT / COMPONENTS
 
-const projectDir = __dirname; //path.resolve(__dirname, "../..");
+const projectDir = __dirname;
 
 const dirs = {
     source: path.resolve(projectDir, "src"),
@@ -48,9 +48,9 @@ const modules = [
 // import aliases
 const alias = {
     "client": path.resolve(dirs.source, "client"),
-    "@ff/browser": "ff-browser/source",
-    "@ff/core": "ff-core/source",
-    "@ff/ui": "ff-ui/source",
+    "@ff/browser": "@framefactory/browser",
+    "@ff/core": "@framefactory/core",
+    "@ff/ui": "@framefactory/ui",
 };
 
 // project components to be built
@@ -89,12 +89,13 @@ WEBPACK - PROJECT BUILD CONFIGURATION
     }
 
     const component = components[componentKey];
+
     if (component === undefined) {
         console.warn(`\n[webpack.config.js] can't build, component not existing: '${componentKey}'`);
         process.exit(1);
     }
 
-    return createBuildConfiguration(environment, dirs, components[componentKey]);}
+    return createBuildConfiguration(environment, dirs, component);}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -102,9 +103,8 @@ function createBuildConfiguration(environment, dirs, component)
 {
     const isDevMode = environment.isDevMode;
     const buildMode = isDevMode ? "development" : "production";
-    const devTool = isDevMode ? "source-map" : undefined;
 
-    const displayTitle = `${component.title} ${component.version} ${isDevMode ? "DEV" : "PROD"}`;
+    const displayTitle = `${component.title} ${component.version} ${isDevMode ? "DEV" : ""}`;
 
     const outputDir = path.resolve(dirs.output, component.subdir);
     mkdirp.sync(outputDir);
@@ -127,7 +127,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
 
     return {
         mode: buildMode,
-        devtool: devTool,
+        devtool: isDevMode ? "source-map" : false,
 
         entry: {
             [component.bundle]: path.resolve(dirs.source, component.entry),
@@ -139,21 +139,17 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
         },
 
         resolve: {
-            // module search paths
             modules,
-            // library aliases
             alias,
-            // Resolvable extensions
             extensions: [".ts", ".tsx", ".js", ".jsx", ".json", ".wasm" ],
         },
-
 
         optimization: {
             minimize: !isDevMode,
 
             minimizer: [
                 new TerserPlugin({ parallel: true }),
-                new OptimizeCSSAssetsPlugin({}),
+                new CssMinimizerPlugin(),
             ]
         },
 
@@ -165,7 +161,6 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
             }),
             new MiniCssExtractPlugin({
                 filename: cssOutputFileName,
-                allChunks: true,
             }),
             new HTMLWebpackPlugin({
                 filename: htmlOutputFileName,
@@ -212,7 +207,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
                     // SCSS
                     test: /\.s[ac]ss$/i,
                     use: [
-                        MiniCssExtractPlugin.loader,
+                        isDevMode ? "style-loader" : MiniCssExtractPlugin.loader,
                         'css-loader',
                         'sass-loader',
                     ],
@@ -221,7 +216,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
                     // CSS
                     test: /\.css$/,
                     use: [
-                        MiniCssExtractPlugin.loader,
+                        isDevMode ? "style-loader" : MiniCssExtractPlugin.loader,
                         "css-loader",
                     ]
                 },
@@ -239,7 +234,12 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
             sockHost: process.env["DEV_SERVER_WEBSOCKET_HOST"],
             sockPort: process.env["DEV_SERVER_WEBSOCKET_PORT"],
             port: process.env["DEV_SERVER_PORT"],
-            disableHostCheck: true
+            disableHostCheck: true,
+            before: function(app /* , server, compiler */) {
+                app.get("/", function(req, res) {
+                    res.redirect(`${components.default.bundle}.dev.html`);
+                });
+            },
         }
     };
 }
