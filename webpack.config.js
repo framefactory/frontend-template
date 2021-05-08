@@ -39,7 +39,6 @@ const dirs = {
     output: path.resolve(projectDir, "public/built"), // built code
     static: path.resolve(projectDir, "public/static"), // destination static assets
     modules: path.resolve(projectDir, "node_modules"),
-    libs: path.resolve(projectDir, "libs"),
     jsFolder: "", // "js/";
     cssFolder: "", // "css/";
 };
@@ -87,7 +86,6 @@ WEBPACK - PROJECT BUILD CONFIGURATION
    source folder: ${dirs.source}
    output folder: ${dirs.output}
   modules folder: ${dirs.modules}
-  library folder: ${dirs.libs}
     `);
 
     const componentKey = argv.component !== undefined ? argv.component : "all";
@@ -201,14 +199,14 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
             minimizer: [
                 new TerserPlugin({ parallel: true }),
                 new CssMinimizerPlugin(),
-            ]
+            ],
         },
 
         plugins: [
             new webpack.DefinePlugin({
                 ENV_PRODUCTION: JSON.stringify(!isDevMode),
                 ENV_DEVELOPMENT: JSON.stringify(isDevMode),
-                ENV_VERSION: JSON.stringify(component.version),
+                ENV_VERSION: JSON.stringify(componentVersion),
             }),
             new MiniCssExtractPlugin({
                 filename: cssOutputFileName,
@@ -269,7 +267,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
                     loader: "handlebars-loader",
                 },
             ],
-        }
+        },
     };
 
     if (component.template) {
