@@ -80,11 +80,7 @@ WEBPACK - PROJECT BUILD CONFIGURATION
                         client: {
                             logging: "info",
                             overlay: true,
-
-                            webSocketURL: {
-                                hostname: process.env["DEV_SERVER_WEBSOCKET_HOST"],
-                                port: process.env["DEV_SERVER_WEBSOCKET_PORT"],
-                            },
+                            webSocketURL: process.env["DEV_SERVER_WEBSOCKET_URL"]
                         },
 
                         // setupMiddlewares: (middlewares, server) => {
@@ -99,6 +95,8 @@ WEBPACK - PROJECT BUILD CONFIGURATION
                         //     return middlewares;
                         // },
                     }
+
+                    
                 }
         
                 configurations.forEach(configuration => {
