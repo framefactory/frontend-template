@@ -1,6 +1,6 @@
 /**
  * Webpack project configuration
- * Version 3.8
+ * Version 4.0
  * 
  * Copyright 2022 Ralph Wiedemeier, Frame Factory GmbH
  * License: MIT
@@ -8,40 +8,38 @@
 
 "use strict";
 
-const path = require("path");
+import * as path from "path";
+import * as utils from "./webpack.utils.js"
 
-const projectDir = path.resolve(__dirname, "..");
-const modulesDir = path.resolve(projectDir, "node_modules")
+const projectDir = process.env.PWD;
+const libDir = path.resolve(projectDir, "libs");
+const projectVersion = utils.getGitDescription();
 
-require("dotenv").config({ path: path.resolve(projectDir, ".env") });
-
-const utils = require("./webpack.utils")
-const projectVersion = utils.getGitDescription()
-
-module.exports = utils.createWebpackConfig({
+export default utils.createWebpackConfig({
     projectVersion,
     defaultTarget: "web",
-    useDevServer: true,
+    useDevServer: false,
 
     folders: {
-        // source code
+         // source code
         source: path.resolve(projectDir, "src"),
         // built code
         output: path.resolve(projectDir, "public/built"),
         // source static assets
         // assets: path.resolve(projectDir, "assets"),
         // destination static assets
-        static: path.resolve(projectDir, "public/static"),
-        modules: modulesDir,
+        // static: path.resolve(projectDir, "public/static"),
+        modules: [ "node_modules" ],
         jsFolder: "", // "js/",
         cssFolder: "", // "css/",
     },
 
     // import aliases
     aliases: {
-        "@ff/core": path.resolve(modulesDir, "@framefactory/core/src"),
-        "@ff/browser": path.resolve(modulesDir, "@framefactory/browser/src"),
-        "@ff/ui": path.resolve(modulesDir, "@framefactory/ui/src"),
+        "@ffweb/core": path.resolve(libDir, "core/src"),
+        "@ffweb/browser": path.resolve(libDir, "browser/src"),
+        "@ffweb/ui": path.resolve(libDir, "ui/src"),
+        "@ffweb/lit": path.resolve(libDir, "lit/src"),
     },
 
     // project components to be built

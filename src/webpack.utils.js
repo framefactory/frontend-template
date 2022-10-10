@@ -1,6 +1,6 @@
 /**
  * Webpack configuration utilities
- * Version 3.8
+ * Version 4.0
  *
  * Copyright 2022 Ralph Wiedemeier, Frame Factory GmbH
  * License: MIT
@@ -8,109 +8,104 @@
 
 "use strict";
 
-const path = require("path");
-const mkdirp = require("mkdirp");
-const childProcess = require("child_process");
-const webpack = require("webpack");
+import path from "path";
+import mkdirp from "mkdirp";
+import childProcess from "child_process";
+import webpack from "webpack";
 
-const TerserPlugin = require("terser-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-const HTMLWebpackPlugin = require("html-webpack-plugin");
-const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+import TerserPlugin from "terser-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
+import HTMLWebpackPlugin from "html-webpack-plugin";
+import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 
-module.exports = {
-    getGitDescription: function() {
-        // execute git describe to retrieve project version
-        let projectVersion = "v0.0.0";
-        try {
-            projectVersion = childProcess.execSync("git describe --tags").toString().trim();
-        }
-        catch {}
+//const TerserPlugin = require("terser-webpack-plugin");
+//const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+// const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+// const HTMLWebpackPlugin = require("html-webpack-plugin");
+// const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+// const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-        return projectVersion
-    },
-
-    createWebpackConfig(settings) {
-        return (env, argv) => {
-            const isDevMode = argv.mode !== undefined ? argv.mode !== "production" : process.env["NODE_ENV"] !== "production";
-            const componentKey = argv.env.component !== undefined ? argv.env.component : "all";
-        
-            //console.log(argv);
-        
-            console.log(`
-WEBPACK - PROJECT BUILD CONFIGURATION
-    build mode: ${isDevMode ? "development" : "production"}
-    component key: ${componentKey}
-    source folder: ${settings.folders.source}
-    output folder: ${settings.folders.output}
-    modules folder: ${settings.folders.modules}
-            `);
-        
-            const components = settings.components;
-            let configurations = null;
-        
-            if (componentKey === "all") {
-                configurations = Object.keys(components).map(key => createBuildConfiguration(key, settings, isDevMode));
-            }
-            else {
-                configurations = [ createBuildConfiguration(componentKey, settings, isDevMode) ];
-            }
-        
-            if (configurations) {
-                if (settings.folders.assets && settings.folders.static) {
-                    const copyAssetsPlugin = new CopyWebpackPlugin({
-                        patterns: [{ from: settings.folders.assets, to: settings.folders.static }]
-                    });
-                    configurations[0].plugins.push(copyAssetsPlugin);
-                }
-        
-                if (settings.useDevServer) {
-                    configurations[0].devServer = {
-                        static: [
-                            settings.folders.output,
-                            settings.folders.static
-                        ],
-
-                        port: process.env["DEV_SERVER_PORT"],
-
-                        allowedHosts: "all",
-
-                        client: {
-                            logging: "info",
-                            overlay: true,
-                            webSocketURL: process.env["DEV_SERVER_WEBSOCKET_URL"]
-                        },
-
-                        // setupMiddlewares: (middlewares, server) => {
-                        //     if (!server) {
-                        //         throw new Error('webpack-dev-server is not defined');
-                        //     }
-
-                        //     server.app.get("/", (req, res) => {
-                        //         res.redirect(`${components.default.bundle}.html`);
-                        //     });
-
-                        //     return middlewares;
-                        // },
-                    }
-
-                    
-                }
-        
-                configurations.forEach(configuration => {
-                    if (configuration.target === "electron-main") {
-                        configuration.externals = {
-                            "electron-reload": "commonjs2 electron-reload",
-                        };
-                    }
-                });
-            }
-        
-            return configurations;
-        }    
+export function getGitDescription()
+{
+    // execute git describe to retrieve project version
+    let projectVersion = "";
+    try {
+        projectVersion = childProcess.execSync("git describe --tags").toString().trim();
     }
+    catch {
+        // do nothing
+    }
+
+    return projectVersion
+}
+
+export function createWebpackConfig(settings)
+{
+    return (env, argv) => {
+        const isDevMode = argv.mode !== undefined ? argv.mode !== "production" : process.env["NODE_ENV"] !== "production";
+        const componentKey = argv.env.component !== undefined ? argv.env.component : "all";
+    
+        //console.log(argv);
+    
+        console.log(`
+WEBPACK - PROJECT BUILD CONFIGURATION
+      build mode: ${isDevMode ? "development" : "production"}
+   component key: ${componentKey}
+   source folder: ${settings.folders.source}
+   output folder: ${settings.folders.output}
+  modules folder: ${settings.folders.modules}
+        `);
+    
+        const components = settings.components;
+        let configurations = null;
+    
+        if (componentKey === "all") {
+            configurations = Object.keys(components).map(key => createBuildConfiguration(key, settings, isDevMode));
+        }
+        else {
+            configurations = [ createBuildConfiguration(componentKey, settings, isDevMode) ];
+        }
+    
+        if (configurations) {
+            if (settings.folders.assets && settings.folders.static) {
+                const copyAssetsPlugin = new CopyWebpackPlugin({
+                    patterns: [{ from: settings.folders.assets, to: settings.folders.static }]
+                });
+                configurations[0].plugins.push(copyAssetsPlugin);
+            }
+    
+            if (settings.useDevServer) {
+                configurations[0].devServer = {
+                    static: [
+                        settings.folders.output,
+                        settings.folders.static
+                    ],
+
+                    port: process.env["DEV_SERVER_PORT"],
+
+                    allowedHosts: "all",
+
+                    client: {
+                        logging: "info",
+                        overlay: true,
+                        webSocketURL: process.env["DEV_SERVER_WEBSOCKET_URL"]
+                    },
+                }
+            }
+    
+            configurations.forEach(configuration => {
+                if (configuration.target === "electron-main") {
+                    configuration.externals = {
+                        "electron-reload": "commonjs2 electron-reload",
+                    };
+                }
+            });
+        }
+    
+        return configurations;
+    };    
 }
 
 function createBuildConfiguration(key, settings, isDevMode)
@@ -138,15 +133,15 @@ function createBuildConfiguration(key, settings, isDevMode)
 
     console.log(`
 WEBPACK - COMPONENT BUILD CONFIGURATION
-    key: ${key}
-    bundle: ${component.bundle}
-    target: ${target}
-    title: ${displayTitle}
-    version: ${componentVersion}
-    output folder: ${outputDir}
-    js file: ${jsOutputFileName}
-    css file: ${cssOutputFileName}
-    html file: ${component.template ? htmlOutputFileName : "n/a"}
+             key: ${key}
+          bundle: ${component.bundle}
+          target: ${target}
+           title: ${displayTitle}
+         version: ${componentVersion}
+   output folder: ${outputDir}
+         js file: ${jsOutputFileName}
+        css file: ${cssOutputFileName}
+       html file: ${component.template ? htmlOutputFileName : "n/a"}
     html element: ${component.element ? htmlElement : "n/a"}
     `);
 
@@ -164,10 +159,19 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
             filename: jsOutputFileName
         },
 
+        watchOptions: {
+            aggregateTimeout: 200,
+            ignored: [ "**/node_modules" ],
+        },
+
         resolve: {
-            modules: [ settings.folders.modules ],
+            modules: settings.folders.modules,
             alias: settings.aliases,
             extensions: [".ts", ".tsx", ".js", ".jsx", ".json", ".wasm" ],
+            extensionAlias: {
+                '.js': ['.js', '.ts'],
+                '.mjs': ['.mjs', '.mts'],
+            },
         },
 
         optimization: {
@@ -188,7 +192,11 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
             new MiniCssExtractPlugin({
                 filename: cssOutputFileName,
             }),
-            new ForkTsCheckerWebpackPlugin(),
+            new ForkTsCheckerWebpackPlugin({
+                typescript: {
+                    configFile: "src/client/tsconfig.json",
+                }
+            }),
         ],
 
         module: {
@@ -219,7 +227,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
                 {
                     // Raw text and shader files
                     test: /\.(txt|glsl|hlsl|frag|vert|fs|vs)$/,
-                    loader: "raw-loader"
+                    type: "asset/source"
                 },
                 {
                     // SCSS
