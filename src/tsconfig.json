@@ -2,11 +2,12 @@
     "compilerOptions": {
         //"strict": true,
         "forceConsistentCasingInFileNames": true,
-        "checkJs": true,
+        "checkJs": false,
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "useDefineForClassFields": false,
         "experimentalDecorators": true,
+        "jsx": "react",
 
         "target": "ES2022",
         "module": "ESNext",
@@ -15,7 +16,7 @@
         "sourceMap": true,
         "noEmit": true,
 
-        "baseUrl": "../..",
+        "baseUrl": "..",
         "paths": {
             "@ffweb/core/*": [ "libs/core/src/*" ],
             "@ffweb/browser/*": [ "libs/browser/src/*" ],

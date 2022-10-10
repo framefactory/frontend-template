@@ -7,3 +7,6 @@
 [submodule "libs/ff-ui"]
 	path = libs/ui
 	url = git@github.com:framefactory/ff-ui.git
+[submodule "libs/lit"]
+	path = libs/lit
+	url = git@github.com:framefactory/ff-lit.git

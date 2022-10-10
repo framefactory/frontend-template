@@ -6,4 +6,4 @@
  */
 
 import "./styles.scss";
-import "./components/Application"
+import "./components/Application.js"

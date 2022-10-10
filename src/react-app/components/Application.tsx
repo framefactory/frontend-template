@@ -17,7 +17,7 @@ export interface IApplicationState
 {
 }
 
-export default class Application extends React.Component<IApplicationProps, IApplicationState>
+export class Application extends React.Component<IApplicationProps, IApplicationState>
 {
     render()
     {

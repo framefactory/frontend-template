@@ -20,12 +20,6 @@ import HTMLWebpackPlugin from "html-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import CopyWebpackPlugin from "copy-webpack-plugin";
 
-//const TerserPlugin = require("terser-webpack-plugin");
-//const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-// const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-// const HTMLWebpackPlugin = require("html-webpack-plugin");
-// const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
-// const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 export function getGitDescription()
 {
@@ -171,6 +165,8 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
             extensionAlias: {
                 '.js': ['.js', '.ts'],
                 '.mjs': ['.mjs', '.mts'],
+                '.jsx': ['.jsx', '.tsx'],
+                '.mjsx': ['.mjsx', '.mtsx'],
             },
         },
 
@@ -192,11 +188,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
             new MiniCssExtractPlugin({
                 filename: cssOutputFileName,
             }),
-            new ForkTsCheckerWebpackPlugin({
-                typescript: {
-                    configFile: "src/client/tsconfig.json",
-                }
-            }),
+            new ForkTsCheckerWebpackPlugin(),
         ],
 
         module: {

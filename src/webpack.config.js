@@ -11,7 +11,7 @@
 import * as path from "path";
 import * as utils from "./webpack.utils.js"
 
-const projectDir = process.env.PWD;
+const projectDir = path.resolve(process.env.PWD, "..");
 const libDir = path.resolve(projectDir, "libs");
 const projectVersion = utils.getGitDescription();
 
