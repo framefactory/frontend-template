@@ -1,12 +1,15 @@
 /**
  * Webpack project configuration
- * Version 4.0
+ * Version 4.7 Front-End
  * 
- * Copyright 2022 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2024 Ralph Wiedemeier, Frame Factory GmbH
  * License: MIT
  */
 
 "use strict";
+
+import * as dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
 
 import * as path from "path";
 import * as utils from "./webpack.utils.js"
@@ -18,20 +21,22 @@ const projectVersion = utils.getGitDescription();
 export default utils.createWebpackConfig({
     projectVersion,
     defaultTarget: "web",
-    useDevServer: false,
+    useDevServer: true,
 
     folders: {
          // source code
         source: path.resolve(projectDir, "src"),
         // built code
         output: path.resolve(projectDir, "public/built"),
-        // source static assets
-        // assets: path.resolve(projectDir, "assets"),
-        // destination static assets
-        // static: path.resolve(projectDir, "public/static"),
+        static: path.resolve(projectDir, "public/static"),
         modules: [ "node_modules" ],
         jsFolder: "", // "js/",
         cssFolder: "", // "css/",
+
+        assets: [{
+            from: path.resolve(projectDir, "assets"),
+            to: path.resolve(projectDir, "public/static"),
+        }],
     },
 
     // import aliases
@@ -52,7 +57,7 @@ export default utils.createWebpackConfig({
             // see https://webpack.js.org/configuration/target/
             target: "web",
             // page title
-            title: "lit-template",
+            title: "Lit App",
             // component version, uses project version if omitted
             version: projectVersion,
             // entry point relative to source folder
@@ -61,6 +66,8 @@ export default utils.createWebpackConfig({
             template: "lit-app/index.hbs",
             // root HTML element for lit-element applications
             element: "<ff-application></ff-application>",
+            // Path prefix for assets referenced in the HTML template
+            publicPath: "",
         },
         "react": {
             // bundle output name
@@ -70,13 +77,15 @@ export default utils.createWebpackConfig({
             // see https://webpack.js.org/configuration/target/
             target: "web",
             // page title
-            title: "react-template",
+            title: "React App",
             // component version, uses project version if omitted
             version: projectVersion,
             // entry point relative to source folder
             entry: "react-app/index.tsx",
             // HTML template relative to source folder
             template: "react-app/index.hbs",
+            // Path prefix for assets referenced in the HTML template
+            publicPath: "",
         }
     }
 });

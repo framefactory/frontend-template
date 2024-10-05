@@ -1,15 +1,16 @@
 /**
  * Webpack configuration utilities
- * Version 4.0
+ * Version 4.7 Front-End
  *
- * Copyright 2022 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2024 Ralph Wiedemeier, Frame Factory GmbH
  * License: MIT
  */
 
 "use strict";
 
+
 import path from "path";
-import mkdirp from "mkdirp";
+import * as mkdirp from "mkdirp";
 import childProcess from "child_process";
 import webpack from "webpack";
 
@@ -50,7 +51,7 @@ WEBPACK - PROJECT BUILD CONFIGURATION
    source folder: ${settings.folders.source}
    output folder: ${settings.folders.output}
   modules folder: ${settings.folders.modules}
-        `);
+       `);
     
         const components = settings.components;
         let configurations = null;
@@ -63,32 +64,39 @@ WEBPACK - PROJECT BUILD CONFIGURATION
         }
     
         if (configurations) {
-            if (settings.folders.assets && settings.folders.static) {
+            if (settings.folders.assets) {
                 const copyAssetsPlugin = new CopyWebpackPlugin({
-                    patterns: [{ from: settings.folders.assets, to: settings.folders.static }]
+                    patterns: settings.folders.assets
                 });
                 configurations[0].plugins.push(copyAssetsPlugin);
             }
     
             if (settings.useDevServer) {
+                const devServerPort = process.env["DEV_SERVER_PORT"] || "9000";
+                const devServerWebsocketUrl = process.env["DEV_SERVER_WEBSOCKET_URL"] ||"ws://localhost:9000/ws";
+                console.log(`
+WEBPACK - DEV SERVER
+            port: ${devServerPort}
+  web socket URL: ${devServerWebsocketUrl}
+                `);
                 configurations[0].devServer = {
                     static: [
                         settings.folders.output,
-                        settings.folders.static
+                        settings.folders.static,
                     ],
 
-                    port: process.env["DEV_SERVER_PORT"],
+                    port: devServerPort,
 
                     allowedHosts: "all",
 
                     client: {
                         logging: "info",
                         overlay: true,
-                        webSocketURL: process.env["DEV_SERVER_WEBSOCKET_URL"]
+                        webSocketURL: devServerWebsocketUrl
                     },
                 }
             }
-    
+
             configurations.forEach(configuration => {
                 if (configuration.target === "electron-main") {
                     configuration.externals = {
@@ -115,28 +123,29 @@ function createBuildConfiguration(key, settings, isDevMode)
     const componentVersion = component.version || settings.projectVersion;
     const target = component.target || settings.defaultTarget;
 
-    const displayTitle = component.title + (isDevMode ? ` ${componentVersion} DEV` : "");
+    const displayTitle = component.title + (isDevMode ? ` DEV ${componentVersion}` : "");
 
     const outputDir = component.subdir ? path.resolve(settings.folders.output, component.subdir) : settings.folders.output;
     mkdirp.sync(outputDir);
 
-    const jsOutputFileName = path.join(settings.folders.jsFolder, "[name].js");
-    const cssOutputFileName = path.join(settings.folders.cssFolder, "[name].css");
+    const jsOutputFileName = path.join(settings.folders.jsFolder ?? "", "[name].js");
+    const cssOutputFileName = path.join(settings.folders.cssFolder ?? "", "[name].css");
     const htmlOutputFileName = `${component.bundle}.html`;
     const htmlElement = component.element;
+    const publicPath = component.publicPath || "";
 
     console.log(`
 WEBPACK - COMPONENT BUILD CONFIGURATION
-             key: ${key}
-          bundle: ${component.bundle}
-          target: ${target}
-           title: ${displayTitle}
-         version: ${componentVersion}
-   output folder: ${outputDir}
-         js file: ${jsOutputFileName}
-        css file: ${cssOutputFileName}
-       html file: ${component.template ? htmlOutputFileName : "n/a"}
-    html element: ${component.element ? htmlElement : "n/a"}
+            key: ${key}
+         bundle: ${component.bundle}
+         target: ${target}
+          title: ${displayTitle}
+        version: ${componentVersion}
+  output folder: ${outputDir}
+        js file: ${jsOutputFileName}
+       css file: ${cssOutputFileName}
+      html file: ${component.template ? htmlOutputFileName : "n/a"}
+   html element: ${component.element ? htmlElement : "n/a"}
     `);
 
     const config = {
@@ -197,6 +206,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
                     // Enforce source maps for all javascript files
                     enforce: "pre",
                     test: /\.js$/,
+                    exclude: /node_modules/,
                     loader: "source-map-loader",
                 },
                 {
@@ -225,8 +235,12 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
                     // SCSS
                     test: /\.s[ac]ss$/i,
                     use: [
-                        isDevMode ? "style-loader" : MiniCssExtractPlugin.loader,
-                        'css-loader',
+                        MiniCssExtractPlugin.loader,
+                        // isDevMode ? "style-loader" : MiniCssExtractPlugin.loader,
+                        {
+                            loader: "css-loader",
+                            options: { url: false },
+                        },
                         'sass-loader',
                     ],
                 },
@@ -234,8 +248,12 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
                     // CSS
                     test: /\.css$/,
                     use: [
-                        isDevMode ? "style-loader" : MiniCssExtractPlugin.loader,
-                        "css-loader",
+                        MiniCssExtractPlugin.loader,
+                        // isDevMode ? "style-loader" : MiniCssExtractPlugin.loader,
+                        {
+                            loader: "css-loader",
+                            options: { url: false },
+                        }
                     ]
                 },
                 {
@@ -250,6 +268,7 @@ WEBPACK - COMPONENT BUILD CONFIGURATION
     if (component.template) {
         config.plugins.push(new HTMLWebpackPlugin({
             filename: htmlOutputFileName,
+            publicPath: publicPath,
             template: path.resolve(settings.folders.source, component.template),
             title: displayTitle,
             version: componentVersion,

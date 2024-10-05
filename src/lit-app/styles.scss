@@ -1,6 +1,6 @@
 /**
  * Frontend Template
- * Copyright 2022 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2024 Ralph Wiedemeier, Frame Factory GmbH
  * 
  * License: MIT
  */

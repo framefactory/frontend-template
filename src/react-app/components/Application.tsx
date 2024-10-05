@@ -1,6 +1,6 @@
 /**
  * Frontend Template
- * Copyright 2022 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2024 Ralph Wiedemeier, Frame Factory GmbH
  *
  * License: MIT
  */
@@ -19,7 +19,7 @@ export interface IApplicationState
 
 export class Application extends React.Component<IApplicationProps, IApplicationState>
 {
-    render()
+    override render()
     {
         return (
             <h1>React Application</h1>
